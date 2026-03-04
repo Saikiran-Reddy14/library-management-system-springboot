@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.practice.library_management.dto.ApiResponse;
+import com.practice.library_management.dto.LoginReq;
+import com.practice.library_management.dto.LoginRes;
 import com.practice.library_management.dto.RegisterReq;
 import com.practice.library_management.dto.RegisterRes;
 import com.practice.library_management.service.UserService;
@@ -30,6 +32,14 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.<RegisterRes>builder().message("User registered successfully")
                         .status(HttpStatus.CREATED.value()).data(res).timestamp(LocalDateTime.now()).build());
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<LoginRes>> login(@RequestBody @Valid LoginReq request) {
+        LoginRes res = userService.login(request);
+        return ResponseEntity
+                .ok(ApiResponse.<LoginRes>builder().message("Login successful").status(HttpStatus.OK.value())
+                        .data(res).timestamp(LocalDateTime.now()).build());
     }
 
 }
