@@ -36,3 +36,5 @@ build/
 *.log
 
 *.jar
+
+src/main/resources/application.properties
