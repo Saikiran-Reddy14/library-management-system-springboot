@@ -1,4 +1,4 @@
-package com.practice.library_management.config;
+package com.practice.library_management.security;
 
 import java.io.IOException;
 
@@ -54,15 +54,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 throw new JwtException("Token is blacklisted");
             }
 
-            if (jwtUtils.isTokenExpired(token)) {
-                throw new ExpiredJwtException(null, null, "Token is expired");
+            String email = jwtUtils.extractEmail(token);
+
+            if (!jwtUtils.isTokenValid(token, email)) {
+                throw new JwtException("Invalid token");
             }
 
-            String email = jwtUtils.extractEmail(token);
             UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(email,
-                    null,
-                    userDetails.getAuthorities());
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                    userDetails, null, userDetails.getAuthorities());
             authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             filterChain.doFilter(request, response);

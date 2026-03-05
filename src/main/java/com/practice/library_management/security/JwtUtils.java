@@ -1,4 +1,4 @@
-package com.practice.library_management.config;
+package com.practice.library_management.security;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -20,10 +20,10 @@ public class JwtUtils {
     private String secretKey;
 
     @Value("${jwt.accessTokenExpiration}")
-    private String accessTokenExpiration;
+    private long accessTokenExpiration;
 
     @Value("${jwt.refreshTokenExpiration}")
-    private String refreshTokenExpiration;
+    private long refreshTokenExpiration;
 
     public SecretKey getSignKey() {
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
@@ -39,11 +39,11 @@ public class JwtUtils {
     }
 
     public String generateAccessToken(String email) {
-        return buildToken(email, Long.parseLong(accessTokenExpiration));
+        return buildToken(email, accessTokenExpiration);
     }
 
     public String generateRefreshToken(String email) {
-        return buildToken(email, Long.parseLong(refreshTokenExpiration));
+        return buildToken(email, refreshTokenExpiration);
     }
 
     public boolean isTokenValid(String token, String email) {

@@ -7,7 +7,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.practice.library_management.config.JwtUtils;
 import com.practice.library_management.dto.LoginReq;
 import com.practice.library_management.dto.LoginRes;
 import com.practice.library_management.dto.RegisterReq;
@@ -17,6 +16,7 @@ import com.practice.library_management.entity.User;
 import com.practice.library_management.exception.ResourceExists;
 import com.practice.library_management.exception.ResourceNotFound;
 import com.practice.library_management.repo.UserRepo;
+import com.practice.library_management.security.JwtUtils;
 
 import lombok.RequiredArgsConstructor;
 
@@ -42,10 +42,8 @@ public class UserService {
     }
 
     public LoginRes login(LoginReq request) {
-        userRepo.findByEmail(request.email())
-                .orElseThrow(() -> new ResourceNotFound("Invalid email or password"));
-        Authentication authentication = authenticationManager
-                .authenticate(new UsernamePasswordAuthenticationToken(request.email(), request.password()));
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.email(), request.password()));
         return LoginRes.builder().accessToken(jwtUtils.generateAccessToken(authentication.getName()))
                 .refreshToken(jwtUtils.generateRefreshToken(authentication.getName())).build();
     }
