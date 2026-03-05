@@ -1,5 +1,6 @@
 package com.practice.library_management.config;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
@@ -25,7 +27,7 @@ public class JwtUtils {
     private String refreshTokenExpiration;
 
     public SecretKey getSignKey() {
-        return Keys.hmacShaKeyFor(secretKey.getBytes());
+        return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
     private String buildToken(String email, long expiration) {
@@ -49,7 +51,7 @@ public class JwtUtils {
         try {
             String extractedEmail = extractEmail(token);
             return email.equals(extractedEmail) && !isTokenExpired(token);
-        } catch (Exception e) {
+        } catch (JwtException e) {
             return false;
         }
     }
@@ -57,7 +59,7 @@ public class JwtUtils {
     public boolean isTokenExpired(String token) {
         try {
             return extractClaims(token).getExpiration().before(new Date());
-        } catch (Exception e) {
+        } catch (JwtException e) {
             return true;
         }
     }
