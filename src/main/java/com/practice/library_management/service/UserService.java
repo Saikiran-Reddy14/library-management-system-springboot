@@ -42,7 +42,7 @@ public class UserService {
     }
 
     public LoginRes login(LoginReq request) {
-        User user = userRepo.findByEmail(request.email())
+        userRepo.findByEmail(request.email())
                 .orElseThrow(() -> new ResourceNotFound("Invalid email or password"));
         Authentication authentication = authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(request.email(), request.password()));
