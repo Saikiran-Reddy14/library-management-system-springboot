@@ -17,6 +17,6 @@ public interface BorrowRecordRepo extends JpaRepository<BorrowRecord, Long> {
 
     List<BorrowRecord> findByUserAndBorrowStatus(User user, BorrowStatus status);
 
-    boolean existsByBookAndUserAndBorrowStatus(Book book, User user, BorrowStatus status);
+    boolean existsByBookAndUserAndBorrowStatusIn(Book book, User user, List<BorrowStatus> statuses);
 
 }
