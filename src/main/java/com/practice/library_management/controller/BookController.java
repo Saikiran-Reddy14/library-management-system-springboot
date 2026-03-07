@@ -5,14 +5,17 @@ import java.time.LocalDateTime;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.practice.library_management.dto.ApiResponse;
 import com.practice.library_management.dto.BookReq;
 import com.practice.library_management.dto.BookRes;
+import com.practice.library_management.dto.PaginationRes;
 import com.practice.library_management.security.CustomUserDetails;
 import com.practice.library_management.service.BookService;
 
@@ -41,6 +44,19 @@ public class BookController {
                         .data(res)
                         .timestamp(LocalDateTime.now())
                         .build());
+    }
+
+    @GetMapping("")
+    public ResponseEntity<ApiResponse<PaginationRes<BookRes>>> getAllBooks(
+            @RequestParam(defaultValue = "0") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "bookId") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortOrder,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        String email = userDetails.getUsername();
+        PaginationRes<BookRes> res = bookService.getAllBooks(pageNumber, pageSize, sortBy, sortOrder, email);
+        return ResponseEntity.ok(ApiResponse.<PaginationRes<BookRes>>builder().message("Retrieved books successfully")
+                .status(200).data(res).timestamp(LocalDateTime.now()).build());
     }
 
 }

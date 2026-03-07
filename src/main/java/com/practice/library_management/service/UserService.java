@@ -94,17 +94,22 @@ public class UserService {
 
     @Transactional
     public TokenRes refresh(String token) {
-        RefreshToken refresh = refreshTokenRepo.findByToken(token)
-                .orElseThrow(() -> new ResourceNotFound("Refresh token not found"));
-
-        if (refresh.getExpiresAt().isBefore(Instant.now())) {
-            refreshTokenRepo.delete(refresh);
+        if (jwtUtils.isTokenExpired(token)) {
             throw new CustomException("Refresh token expired");
         }
 
-        if (blackListedTokenRepo.existsByToken(refresh.getAccessToken())) {
+        String tokenType = jwtUtils.extractTokenType(token);
+        if (!"refresh".equals(tokenType)) {
+            throw new CustomException("Invalid token type: expected refresh token");
+        }
+
+        RefreshToken refresh = refreshTokenRepo.findByToken(token)
+                .orElseThrow(() -> new ResourceNotFound("Refresh token not found"));
+
+        String email = jwtUtils.extractEmail(token);
+        if (!refresh.getUser().getEmail().equals(email)) {
             refreshTokenRepo.delete(refresh);
-            throw new CustomException("Access token is blacklisted");
+            throw new CustomException("Token does not belong to this user");
         }
 
         String accessToken = jwtUtils.generateAccessToken(refresh.getUser().getEmail());

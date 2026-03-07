@@ -29,9 +29,10 @@ public class JwtUtils {
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
-    private String buildToken(String email, long expiration) {
+    private String buildToken(String email, long expiration, String type) {
         return Jwts.builder()
                 .subject(email)
+                .claim("type", type)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSignKey())
@@ -39,17 +40,22 @@ public class JwtUtils {
     }
 
     public String generateAccessToken(String email) {
-        return buildToken(email, accessTokenExpiration);
+        return buildToken(email, accessTokenExpiration, "access");
     }
 
     public String generateRefreshToken(String email) {
-        return buildToken(email, refreshTokenExpiration);
+        return buildToken(email, refreshTokenExpiration, "refresh");
+    }
+
+    public String extractTokenType(String token) {
+        return extractClaims(token).get("type", String.class);
     }
 
     public boolean isTokenValid(String token, String email) {
         try {
             String extractedEmail = extractEmail(token);
-            return email.equals(extractedEmail) && !isTokenExpired(token);
+            return email.equals(extractedEmail) && !isTokenExpired(token)
+                    && "access".equals(extractTokenType(token));
         } catch (JwtException e) {
             return false;
         }

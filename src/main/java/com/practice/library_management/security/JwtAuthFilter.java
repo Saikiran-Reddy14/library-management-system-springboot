@@ -64,6 +64,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 throw new JwtException("Token is blacklisted");
             }
 
+            if (!"access".equals(jwtUtils.extractTokenType(token))) {
+                throw new JwtException("Invalid token type");
+            }
+
             if (SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
@@ -85,7 +89,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             filterChain.doFilter(request, response);
 
-        } catch (Exception ex) {
+        } catch (JwtException ex) {
             resolver.resolveException(request, response, null, ex);
         }
     }
