@@ -3,6 +3,7 @@ package com.practice.library_management.service;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,4 +72,48 @@ public class BorrowService {
                                 .build();
         }
 
+        @Transactional
+        public BorrowRes returnBook(Long recordId, String email) {
+                BorrowRecord record = borrowRepo.findById(recordId)
+                                .orElseThrow(() -> new ResourceNotFound("Borrow record not found"));
+
+                if (!record.getUser().getEmail().equals(email)) {
+                        throw new CustomException("You can only return books you have borrowed.");
+                }
+
+                if (record.getBorrowStatus() != BorrowStatus.BORROWED &&
+                                record.getBorrowStatus() != BorrowStatus.OVERDUE) {
+                        throw new CustomException("This book is not currently borrowed.");
+                }
+
+                Book book = record.getBook();
+                book.setAvailableCopies(book.getAvailableCopies() + 1);
+
+                record.setReturnDate(LocalDate.now());
+                record.setBorrowStatus(BorrowStatus.RETURNED);
+                borrowRepo.save(record);
+
+                return BorrowRes.builder()
+                                .recordId(record.getRecordId())
+                                .bookTitle(record.getBook().getTitle())
+                                .username(record.getUser().getUsername())
+                                .borrowDate(record.getBorrowDate())
+                                .dueDate(record.getDueDate())
+                                .returnDate(record.getReturnDate())
+                                .borrowStatus(record.getBorrowStatus())
+                                .build();
+        }
+
+        @Transactional
+        @Scheduled(cron = "0 0 0 * * ?")
+        public void updateOverdueBooks() {
+
+                List<BorrowRecord> overdueRecords = borrowRepo.findByBorrowStatusAndDueDateBefore(
+                                BorrowStatus.BORROWED,
+                                LocalDate.now());
+
+                for (BorrowRecord record : overdueRecords) {
+                        record.setBorrowStatus(BorrowStatus.OVERDUE);
+                }
+        }
 }

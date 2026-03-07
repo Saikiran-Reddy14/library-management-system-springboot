@@ -1,5 +1,6 @@
 package com.practice.library_management.repo;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,5 +19,7 @@ public interface BorrowRecordRepo extends JpaRepository<BorrowRecord, Long> {
     List<BorrowRecord> findByUserAndBorrowStatus(User user, BorrowStatus status);
 
     boolean existsByBookAndUserAndBorrowStatusIn(Book book, User user, List<BorrowStatus> statuses);
+
+    List<BorrowRecord> findByBorrowStatusAndDueDateBefore(BorrowStatus status, LocalDate date);
 
 }

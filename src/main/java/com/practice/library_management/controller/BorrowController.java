@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,6 +38,19 @@ public class BorrowController {
                         .data(borrowRes)
                         .timestamp(LocalDateTime.now())
                         .build());
+    }
+
+    @PostMapping("/{recordId}/return")
+    public ResponseEntity<ApiResponse<BorrowRes>> returnBook(@PathVariable Long recordId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        String email = userDetails.getUsername();
+        BorrowRes borrowRes = borrowService.returnBook(recordId, email);
+        return ResponseEntity.ok().body(ApiResponse.<BorrowRes>builder()
+                .message("Book Returned Successfully")
+                .status(HttpStatus.OK.value())
+                .data(borrowRes)
+                .timestamp(LocalDateTime.now())
+                .build());
     }
 
 }
