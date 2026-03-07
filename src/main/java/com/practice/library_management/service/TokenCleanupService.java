@@ -9,11 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.practice.library_management.repo.BlackListedTokenRepo;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class TokenCleanupService {
 
     private final BlackListedTokenRepo blackListedTokenRepo;
@@ -22,7 +20,6 @@ public class TokenCleanupService {
     @Transactional
     public void deleteExpiredBlacklistedTokens() {
         blackListedTokenRepo.deleteByExpiresAtBefore(Instant.now());
-        log.info("Deleted expired blacklisted tokens");
     }
 
 }
