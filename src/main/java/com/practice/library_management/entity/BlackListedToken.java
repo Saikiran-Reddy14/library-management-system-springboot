@@ -1,5 +1,7 @@
 package com.practice.library_management.entity;
 
+import java.time.Instant;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -25,7 +27,10 @@ public class BlackListedToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false, length = 512)
     private String token;
+
+    @Column(nullable = false)
+    private Instant expiresAt;
 
 }

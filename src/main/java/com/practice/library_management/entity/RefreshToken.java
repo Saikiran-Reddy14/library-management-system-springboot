@@ -2,6 +2,7 @@ package com.practice.library_management.entity;
 
 import java.time.Instant;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -29,8 +30,10 @@ public class RefreshToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(length = 512)
     private String token;
 
+    @Column(length = 512)
     private String accessToken;
 
     @ManyToOne(fetch = FetchType.LAZY)

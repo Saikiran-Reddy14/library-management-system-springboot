@@ -24,6 +24,7 @@ import com.practice.library_management.exception.ResourceNotFound;
 import com.practice.library_management.repo.BlackListedTokenRepo;
 import com.practice.library_management.repo.RefreshTokenRepo;
 import com.practice.library_management.repo.UserRepo;
+import com.practice.library_management.security.CustomUserDetails;
 import com.practice.library_management.security.JwtUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -39,11 +40,17 @@ public class UserService {
     private final BlackListedTokenRepo blackListedTokenRepo;
     private final RefreshTokenRepo refreshTokenRepo;
 
+    @Value("${jwt.accessTokenExpiration}")
+    private long accessTokenExpiry;
+
     @Value("${jwt.refreshTokenExpiration}")
     private long refreshTokenExpiry;
 
     @Transactional
     public RegisterRes register(RegisterReq request) {
+        if (userRepo.existsByUsername(request.username())) {
+            throw new ResourceExists("Username already exists");
+        }
         if (userRepo.existsByEmail(request.email())) {
             throw new ResourceExists("Email already exists");
         }
@@ -59,8 +66,8 @@ public class UserService {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.email(), request.password()));
 
-        User user = userRepo.findByEmail(request.email())
-                .orElseThrow(() -> new ResourceNotFound("Invalid email or password"));
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        User user = userDetails.getUser();
 
         refreshTokenRepo.deleteAllByUser(user);
 
@@ -79,7 +86,8 @@ public class UserService {
     @Transactional
     public void logout(String token) {
         if (!blackListedTokenRepo.existsByToken(token)) {
-            blackListedTokenRepo.save(BlackListedToken.builder().token(token).build());
+            blackListedTokenRepo.save(BlackListedToken.builder().token(token)
+                    .expiresAt(Instant.now().plusMillis(accessTokenExpiry)).build());
         }
         refreshTokenRepo.findByAccessToken(token).ifPresent(refreshTokenRepo::delete);
     }
@@ -102,7 +110,8 @@ public class UserService {
         String accessToken = jwtUtils.generateAccessToken(refresh.getUser().getEmail());
         String refreshToken = jwtUtils.generateRefreshToken(refresh.getUser().getEmail());
 
-        blackListedTokenRepo.save(BlackListedToken.builder().token(refresh.getAccessToken()).build());
+        blackListedTokenRepo.save(BlackListedToken.builder().token(refresh.getAccessToken())
+                .expiresAt(Instant.now().plusMillis(accessTokenExpiry)).build());
         refreshTokenRepo.delete(refresh);
 
         RefreshToken newRefresh = RefreshToken.builder().accessToken(accessToken).token(refreshToken)

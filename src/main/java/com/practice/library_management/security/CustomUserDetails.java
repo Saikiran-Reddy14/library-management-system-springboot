@@ -1,4 +1,4 @@
-package com.practice.library_management.utils;
+package com.practice.library_management.security;
 
 import java.util.Collection;
 import java.util.List;
@@ -15,6 +15,10 @@ import lombok.RequiredArgsConstructor;
 public class CustomUserDetails implements UserDetails {
 
     private final User user;
+
+    public User getUser() {
+        return user;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

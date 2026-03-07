@@ -1,9 +1,7 @@
 package com.practice.library_management.security;
 
 import java.io.IOException;
-import java.time.Instant;
 
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,22 +10,33 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.practice.library_management.repo.BlackListedTokenRepo;
-import com.practice.library_management.utils.CustomUserDetailsService;
+
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 
 @Component
-@RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
     private final BlackListedTokenRepo blackListedTokenRepo;
     private final CustomUserDetailsService customUserDetailsService;
+    private final HandlerExceptionResolver resolver;
+
+    public JwtAuthFilter(JwtUtils jwtUtils,
+            BlackListedTokenRepo blackListedTokenRepo,
+            CustomUserDetailsService customUserDetailsService,
+            @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver) {
+        this.jwtUtils = jwtUtils;
+        this.blackListedTokenRepo = blackListedTokenRepo;
+        this.customUserDetailsService = customUserDetailsService;
+        this.resolver = resolver;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -77,17 +86,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
 
         } catch (Exception ex) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            
-            String json = String.format(
-                "{\"timestamp\":\"%s\",\"status\":%d,\"message\":\"%s\"}",
-                Instant.now().toString(),
-                HttpServletResponse.SC_UNAUTHORIZED,
-                ex.getMessage()
-            );
-            
-            response.getWriter().write(json);
+            resolver.resolveException(request, response, null, ex);
         }
     }
 }

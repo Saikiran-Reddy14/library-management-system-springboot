@@ -1,4 +1,4 @@
-package com.practice.library_management.utils;
+package com.practice.library_management.security;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

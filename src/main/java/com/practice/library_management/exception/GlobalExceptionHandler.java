@@ -29,7 +29,7 @@ import io.jsonwebtoken.security.SignatureException;
 import jakarta.validation.ConstraintViolationException;
 
 @RestControllerAdvice
-public class GlobalException {
+public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFound.class)
     public ResponseEntity<ApiResponse<Object>> handleResourceNotFound(ResourceNotFound ex) {

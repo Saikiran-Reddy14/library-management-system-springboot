@@ -1,5 +1,7 @@
 package com.practice.library_management.repo;
 
+import java.time.Instant;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,5 +13,7 @@ public interface BlackListedTokenRepo extends JpaRepository<BlackListedToken, Lo
     boolean existsByToken(String token);
 
     void deleteByToken(String token);
+
+    void deleteByExpiresAtBefore(Instant now);
 
 }
