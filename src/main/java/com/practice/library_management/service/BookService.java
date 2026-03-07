@@ -109,17 +109,19 @@ public class BookService {
             book.setCategoryName(request.categoryName());
         }
 
-        bookRepo.save(book);
+        Book savedBook = bookRepo.save(book);
 
-        return BookRes.builder()
-                .bookId(book.getBookId())
-                .title(book.getTitle())
-                .authorName(book.getAuthorName())
-                .isbn(book.getIsbn())
-                .categoryName(book.getCategoryName())
-                .totalCopies(book.getTotalCopies())
-                .availableCopies(book.getAvailableCopies())
-                .build();
+        return toBookRes(savedBook);
+    }
+
+    @Transactional
+    public void deleteBook(Long bookId) {
+        Book book = bookRepo.findById(bookId)
+                .orElseThrow(() -> new ResourceNotFound("Book not found with id: " + bookId));
+        if (!book.getTotalCopies().equals(book.getAvailableCopies())) {
+            throw new IllegalArgumentException("Cannot delete book while some copies are still borrowed");
+        }
+        bookRepo.deleteById(bookId);
     }
 
     private BookRes toBookRes(Book book) {
