@@ -4,12 +4,12 @@ import lombok.Builder;
 
 @Builder
 public record BookRes(
-        Long bookId,
-        String title,
-        String isbn,
-        Integer totalCopies,
-        Integer availableCopies,
-        String authorName,
-        String categoryName) {
+                Long bookId,
+                String title,
+                String isbn,
+                Long totalCopies,
+                Long availableCopies,
+                String authorName,
+                String categoryName) {
 
 }
