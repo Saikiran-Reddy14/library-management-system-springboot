@@ -3,12 +3,17 @@ package com.practice.library_management.service;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.practice.library_management.dto.BorrowReq;
 import com.practice.library_management.dto.BorrowRes;
+import com.practice.library_management.dto.PaginationRes;
 import com.practice.library_management.entity.Book;
 import com.practice.library_management.entity.BorrowRecord;
 import com.practice.library_management.entity.BorrowStatus;
@@ -115,5 +120,92 @@ public class BorrowService {
                 for (BorrowRecord record : overdueRecords) {
                         record.setBorrowStatus(BorrowStatus.OVERDUE);
                 }
+        }
+
+        @Transactional(readOnly = true)
+        public List<BorrowRes> getBorrowHistory(String email) {
+                User user = userRepo.findByEmail(email)
+                                .orElseThrow(() -> new ResourceNotFound("User does not exist with email: " + email));
+                List<BorrowRecord> records = borrowRepo.findByUser(user);
+                return records.stream()
+                                .map(record -> BorrowRes.builder()
+                                                .recordId(record.getRecordId())
+                                                .bookTitle(record.getBook().getTitle())
+                                                .username(record.getUser().getUsername())
+                                                .borrowDate(record.getBorrowDate())
+                                                .dueDate(record.getDueDate())
+                                                .returnDate(record.getReturnDate())
+                                                .borrowStatus(record.getBorrowStatus())
+                                                .build())
+                                .toList();
+        }
+
+        @Transactional(readOnly = true)
+        public List<BorrowRes> getActiveBorrows(String email) {
+                User user = userRepo.findByEmail(email)
+                                .orElseThrow(() -> new ResourceNotFound("User does not exist with email: " + email));
+                List<BorrowRecord> records = borrowRepo.findByUserAndBorrowStatusIn(
+                                user,
+                                List.of(BorrowStatus.BORROWED, BorrowStatus.OVERDUE));
+
+                return records.stream()
+                                .map(record -> BorrowRes.builder()
+                                                .recordId(record.getRecordId())
+                                                .bookTitle(record.getBook().getTitle())
+                                                .username(record.getUser().getUsername())
+                                                .borrowDate(record.getBorrowDate())
+                                                .dueDate(record.getDueDate())
+                                                .returnDate(record.getReturnDate())
+                                                .borrowStatus(record.getBorrowStatus())
+                                                .build())
+                                .toList();
+        }
+
+        public List<BorrowRes> getBorrowsByStatus(String email, String status) {
+                User user = userRepo.findByEmail(email)
+                                .orElseThrow(() -> new ResourceNotFound("User does not exist with email: " + email));
+                BorrowStatus borrowStatus = BorrowStatus.valueOf(status.toUpperCase());
+                List<BorrowRecord> records = borrowRepo.findByUserAndBorrowStatus(user, borrowStatus);
+                return records.stream()
+                                .map(record -> BorrowRes.builder()
+                                                .recordId(record.getRecordId())
+                                                .bookTitle(record.getBook().getTitle())
+                                                .username(record.getUser().getUsername())
+                                                .borrowDate(record.getBorrowDate())
+                                                .dueDate(record.getDueDate())
+                                                .returnDate(record.getReturnDate())
+                                                .borrowStatus(record.getBorrowStatus())
+                                                .build())
+                                .toList();
+        }
+
+        public PaginationRes<BorrowRes> getBorrowsByStatusAdmin(String status, int page, int size, String sortBy,
+                        String sortOrder) {
+                BorrowStatus borrowStatus = BorrowStatus.valueOf(status.toUpperCase());
+                Sort sort = sortOrder.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending()
+                                : Sort.by(sortBy).descending();
+                Pageable pageable = PageRequest.of(page, size, sort);
+                Page<BorrowRecord> records = borrowRepo.findByBorrowStatus(borrowStatus, pageable);
+
+                List<BorrowRes> borrowRes = records.getContent().stream()
+                                .map(record -> BorrowRes.builder()
+                                                .recordId(record.getRecordId())
+                                                .bookTitle(record.getBook().getTitle())
+                                                .username(record.getUser().getUsername())
+                                                .borrowDate(record.getBorrowDate())
+                                                .dueDate(record.getDueDate())
+                                                .returnDate(record.getReturnDate())
+                                                .borrowStatus(record.getBorrowStatus())
+                                                .build())
+                                .toList();
+
+                return PaginationRes.<BorrowRes>builder()
+                                .data(borrowRes)
+                                .pageNumber(records.getNumber())
+                                .pageSize(records.getSize())
+                                .totalPages(records.getTotalPages())
+                                .totalElements(records.getTotalElements())
+                                .hasNext(records.hasNext())
+                                .build();
         }
 }
