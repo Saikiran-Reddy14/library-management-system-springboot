@@ -136,4 +136,48 @@ public class BookService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
+    public PaginationRes<BookRes> searchBooks(String query, int page, int size, String sortBy, String sortOrder) {
+        Sort sort = sortOrder.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Book> books = bookRepo.searchBooks(query, pageable);
+        return toPaginationRes(books);
+    }
+
+    @Transactional(readOnly = true)
+    public PaginationRes<BookRes> getBooksByCategory(String category, int page, int size, String sortBy, String sortOrder) {
+        Sort sort = sortOrder.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Book> books = bookRepo.findByCategoryNameContainingIgnoreCase(category, pageable);
+        return toPaginationRes(books);
+    }
+
+    @Transactional(readOnly = true)
+    public PaginationRes<BookRes> getBooksByAuthor(String author, int page, int size, String sortBy, String sortOrder) {
+        Sort sort = sortOrder.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Book> books = bookRepo.findByAuthorNameContainingIgnoreCase(author, pageable);
+        return toPaginationRes(books);
+    }
+
+    @Transactional(readOnly = true)
+    public PaginationRes<BookRes> getAvailableBooks(int page, int size, String sortBy, String sortOrder) {
+        Sort sort = sortOrder.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Book> books = bookRepo.findByAvailableCopiesGreaterThan(0L, pageable);
+        return toPaginationRes(books);
+    }
+
+    private PaginationRes<BookRes> toPaginationRes(Page<Book> books) {
+        List<BookRes> bookRes = books.getContent().stream().map(this::toBookRes).toList();
+        return PaginationRes.<BookRes>builder()
+                .data(bookRes)
+                .pageNumber(books.getNumber())
+                .pageSize(books.getSize())
+                .totalPages(books.getTotalPages())
+                .totalElements(books.getTotalElements())
+                .hasNext(books.hasNext())
+                .build();
+    }
+
 }

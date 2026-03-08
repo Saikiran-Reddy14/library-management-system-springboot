@@ -81,4 +81,67 @@ public class BookController {
                 .status(200).data(null).timestamp(LocalDateTime.now()).build());
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<PaginationRes<BookRes>>> searchBooks(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "0") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "bookId") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortOrder) {
+        PaginationRes<BookRes> books = bookService.searchBooks(query, pageNumber, pageSize, sortBy, sortOrder);
+        return ResponseEntity.ok(ApiResponse.<PaginationRes<BookRes>>builder()
+                .message("Books retrieved successfully")
+                .status(200)
+                .data(books)
+                .timestamp(LocalDateTime.now())
+                .build());
+    }
+
+    @GetMapping("/category/{category}")
+    public ResponseEntity<ApiResponse<PaginationRes<BookRes>>> getBooksByCategory(
+            @PathVariable String category,
+            @RequestParam(defaultValue = "0") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "bookId") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortOrder) {
+        PaginationRes<BookRes> books = bookService.getBooksByCategory(category, pageNumber, pageSize, sortBy, sortOrder);
+        return ResponseEntity.ok(ApiResponse.<PaginationRes<BookRes>>builder()
+                .message("Books retrieved successfully")
+                .status(200)
+                .data(books)
+                .timestamp(LocalDateTime.now())
+                .build());
+    }
+
+    @GetMapping("/author/{author}")
+    public ResponseEntity<ApiResponse<PaginationRes<BookRes>>> getBooksByAuthor(
+            @PathVariable String author,
+            @RequestParam(defaultValue = "0") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "bookId") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortOrder) {
+        PaginationRes<BookRes> books = bookService.getBooksByAuthor(author, pageNumber, pageSize, sortBy, sortOrder);
+        return ResponseEntity.ok(ApiResponse.<PaginationRes<BookRes>>builder()
+                .message("Books retrieved successfully")
+                .status(200)
+                .data(books)
+                .timestamp(LocalDateTime.now())
+                .build());
+    }
+
+    @GetMapping("/available")
+    public ResponseEntity<ApiResponse<PaginationRes<BookRes>>> getAvailableBooks(
+            @RequestParam(defaultValue = "0") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "bookId") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortOrder) {
+        PaginationRes<BookRes> books = bookService.getAvailableBooks(pageNumber, pageSize, sortBy, sortOrder);
+        return ResponseEntity.ok(ApiResponse.<PaginationRes<BookRes>>builder()
+                .message("Available books retrieved successfully")
+                .status(200)
+                .data(books)
+                .timestamp(LocalDateTime.now())
+                .build());
+    }
+
 }
