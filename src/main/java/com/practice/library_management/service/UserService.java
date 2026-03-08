@@ -80,7 +80,8 @@ public class UserService {
 
         return TokenRes.builder()
                 .accessToken(accessToken)
-                .refreshToken(refreshToken).build();
+                .refreshToken(refreshToken)
+                .role(user.getRole().name()).build();
     }
 
     @Transactional
@@ -123,7 +124,8 @@ public class UserService {
                 .expiresAt(Instant.now().plusMillis(refreshTokenExpiry)).user(refresh.getUser()).build();
         refreshTokenRepo.save(newRefresh);
 
-        return TokenRes.builder().accessToken(accessToken).refreshToken(refreshToken).build();
+        return TokenRes.builder().accessToken(accessToken).refreshToken(refreshToken)
+                .role(refresh.getUser().getRole().name()).build();
     }
 
 }
